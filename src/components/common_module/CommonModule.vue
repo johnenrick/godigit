@@ -11,7 +11,7 @@
         {{modalTitle}}
       </div>
       <div slot="body">
-        <common-form ref="commonForm" :api="api" :inputs="form_setting.inputs" v-on:form_close="formClose" v-on:form_deleted="formDeleted" v-on:form_updated="formUpdated"></common-form>
+        <common-form ref="commonForm" :api="api" :inputs="form_setting.inputs" v-on:form_close="formClose" v-on:form_deleted="formDeleted" v-on:form_updated="formUpdated" :retrieve_parameter="form_setting.retrieveParameter"></common-form>
       </div>
     </modal>
   </div>

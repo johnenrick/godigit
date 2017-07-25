@@ -99,7 +99,13 @@
       no_delete: Boolean,
       read_only: Boolean,
       inputs: Object,
-      entry_id: Number
+      entry_id: Number,
+      retrieve_parameter: {
+        type: Object,
+        default: function(){
+          return {}
+        }
+      }
     },
     methods: {
       submitForm(){
@@ -145,9 +151,8 @@
           this.formDataUpdated = !this.formDataUpdated
         }else{
           this.formRequestStatus = 'loading'
-          let requestOption = {
-            id: id
-          }
+          let requestOption = this.retrieve_parameter
+          this.retrieve_parameter['id'] = id
           this.APIRequest(this.links.retrieve, requestOption, (response) => {
             if(response['data']){
               this.formData = response['data']

@@ -72,9 +72,15 @@
           :form_data="form_data"
           :form_status="form_status"
           :default_value="default_value"
+          :placeholder="placeholder"
           v-on:change="valueChanged"
           >
         </select2>
+        <template
+          v-else-if="inputType === 'static'"
+        >
+          {{form_data[db_name]}}
+        </template>
         <template v-else>
           <input
             v-if="form_status !== 'view'"

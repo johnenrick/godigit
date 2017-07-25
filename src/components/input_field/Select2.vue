@@ -1,4 +1,4 @@
-<template>
+go  <template>
   <div>
     <div v-bind:class="form_status === 'view' ? 'hide' :''">
       <select ref="select" style="width:100%"
@@ -32,11 +32,13 @@
       default_value: String,
       db_name: String,
       form_data: Object,
-      form_status: String
+      form_status: String,
+      placeholder: String
     },
     methods: {
       initInput(){
         let vm = this
+        let placeholder = (this.placeholder) ? this.placeholder : 'Select ' +
         $(this.$refs.select).select2({
           data: this.value,
           minimumInputLength: 3,
@@ -66,9 +68,7 @@
               query.callback(this.options)
             })
           }
-        }).val(this.value)
-        .trigger('change')
-        // emit event on change.
+        })
         .on('change', function(event){
           vm.value = this.value
           vm.$emit('change', event)

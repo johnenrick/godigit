@@ -17,9 +17,6 @@
     },
     data(){
       let filterSetting = {
-        parent_id: {
-          default_value: 2
-        },
         name: {
         },
         code: {
@@ -36,6 +33,11 @@
       }
       let formSetting = {
         modal_size: 'modal-lg',
+        retrieveParameter: {
+          with_foreign_table: [
+            'department_head'
+          ]
+        },
         inputs: {
           logo_input_group: {
             input_type: 'group',
@@ -45,10 +47,23 @@
                 label_colspan: 0,
                 input_type: 'single_image'
               },
-              department_head: {
+              department_account_id: {
+                db_name: 'department_members[0][id]'
+              },
+              department_head_name: {
+                value_function: (formData) => {
+                  let name = formData['department_head']['account_information']['first_name'] + ' ' + formData['department_head']['account_information']['last_name']
+                  return {
+                    department_head_name: name
+                  }
+                },
                 input_name: 'Department Head',
-                input_type: 'select2',
+                input_type: 'static',
                 label_colspan: 12
+              },
+              department_is_head: {
+                db_name: 'department_members[0][is_head]',
+                input_type: 'hidden'
               }
             }
           },

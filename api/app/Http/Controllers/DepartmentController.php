@@ -18,6 +18,12 @@ class DepartmentController extends APIController
       "fax_number",
       "logo"
     );
+    $this->editableForeignTable = array(
+      'department_members'
+    );
+    $this->foreignTable = array(
+      'department_head'
+    );
     $this->singleImageFileUpload = array(
       array(
         "name" => 'logo_file',

@@ -61,7 +61,6 @@
       return {
         inputList: {},
         valueFunctionList: {},
-        valueChangedList: {},
         inputInitialized: false,
         fieldNameList: {}
       }
@@ -77,9 +76,17 @@
       form_data_updated(value){
         for(let key in this.inputList){
           let fieldName = this.inputList[key]['field_name']
-          this.formDataChanged(fieldName, this.form_data[this.inputList[key]['db_name']])
-        }
+          let dbName = this.inputList[key]['field_name']
 
+          if(typeof this.valueFunctionList[fieldName] !== 'undefined'){
+            let newFormData = this.valueFunctionList[dbName](this.form_data)
+            for(let formKey in newFormData){
+              this.formDataChanged(this.fieldNameList[formKey], newFormData[formKey])
+            }
+          }else{
+            this.formDataChanged(fieldName, this.form_data[dbName])
+          }
+        }
       }
     },
     methods: {
@@ -88,13 +95,12 @@
       },
       valueChanged(e, customName){
         let dbName = typeof customName !== 'undefined' ? customName : $(e.target).attr('name')
-        if(typeof this.valueChangedList[dbName] !== 'undefined'){
-          let newFormData = this.valueChangedList[dbName](this.formData)
+        if(typeof this.valueFunctionList[dbName] !== 'undefined'){
+          let newFormData = this.valueFunctionList[dbName](this.form_data)
           for(let formKey in newFormData){
             this.formDataChanged(this.fieldNameList[formKey], newFormData[formKey])
           }
         }else{
-
           this.formDataChanged(this.fieldNameList[dbName], $(e.target).val())
         }
 
@@ -136,10 +142,7 @@
           }
           this.formDataChanged(this.inputList[key]['field_name'], this.inputList[key]['default_value'])
           if(typeof this.inputList[key]['value_function'] !== 'undefined'){
-            this.valueFunctionList[key] = this.inputList[key]
-          }
-          if(typeof this.inputList[key]['value_changed'] !== 'undefined'){
-            this.valueChangedList[key] = this.inputList[key]
+            this.valueFunctionList[key] = this.inputList[key]['value_function']
           }
           Vue.set(this.fieldNameList, this.inputList[key]['db_name'], this.inputList[key]['field_name'])
         }

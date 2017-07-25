@@ -28,7 +28,7 @@ class APIController extends Controller
     protected $tableColumns = null;
     protected $notRequired = array();
     protected $defaultValue = array();
-    protected $requiredForeignTable = null;//children that are always retrieve, singular
+    protected $requiredForeignTable = array();//children that are always retrieve, singular
     /**
       Array for single fileupload input.
       [{
@@ -258,23 +258,58 @@ class APIController extends Controller
       }
       return false;
     }
+    function initCondition($condition){
+      $initializedCondition = array(
+        "main_table" => array(),
+        "foreign_table" => array()
+      );
+      if(isset($condition)){
+        for($x = 0; $x < count($condition); $x++){
+          $columnExploded = explode('.', $condition[$x]['column']);
+          if(count($columnExploded > 1)){ // foreign table
+            if(!isset($initializedCondition['foreign_table'][$columnExploded[0]])){
+              $initializedCondition['foreign_table'][$columnExploded[0]] = array();
+            }
+            $initializedCondition['foreign_table'][$columnExploded[0]][] = $condition[$x];
+          }else{
+            $initializedCondition['main_table'][] = $condition[$x];
+          }
+
+        }
+      }
+      return $initializedCondition;
+    }
     public function retrieveEntry($request){
+      $allowedForeignTable = array_merge($this->foreignTable, $this->editableForeignTable, $this->requiredForeignTable);
       $tableName = $this->model->getTable();
       $singularTableName = str_singular($tableName);
       $tableColumns = $this->model->getTableColumns();
-      if($this->requiredForeignTable){
-        $this->model = $this->model->with($this->requiredForeignTable);
-        for($x = 0; $x < count($this->requiredForeignTable); $x++){
-          $singularForeignTable = str_singular($this->requiredForeignTable[$x]);
-          $pluralForeignTable = str_plural($this->requiredForeignTable[$x]);
-          $this->model = $this->model->leftJoin($pluralForeignTable, $pluralForeignTable.'.id', '=', $tableName.'.'.$singularForeignTable.'_id');
-        }
-      }
+      // if(count($this->requiredForeignTable)){
+      //   $this->model = $this->model->with($this->requiredForeignTable);
+      //   for($x = 0; $x < count($this->requiredForeignTable); $x++){
+      //     $singularForeignTable = str_singular($this->requiredForeignTable[$x]);
+      //     $pluralForeignTable = str_plural($this->requiredForeignTable[$x]);
+      //     $this->model = $this->model->leftJoin($pluralForeignTable, $pluralForeignTable.'.id', '=', $tableName.'.'.$singularForeignTable.'_id');
+      //   }
+      // }
+      $condition = $this->initCondition($request['condition']);
       if(isset($request['with_foreign_table'])){
         $foreignTable = array();
         foreach($request['with_foreign_table'] as $tempForeignTable){
-          if(in_array($tempForeignTable, $this->foreignTable)){
+          if(in_array($tempForeignTable, $allowedForeignTable)){
             $foreignTable[] = $tempForeignTable;
+            if(isset($condition['foreign_table'][str_plural($tempForeignTable)])){
+              $this->model = $this->model->whereHas($tempForeignTable, function($q) use($condition, $tempForeignTable){
+                $this->printR($condition);
+                $tempForeignTablePlural = str_plural($tempForeignTable);
+                for($x = 0; $x < count($condition['foreign_table'][$tempForeignTablePlural]); $x++){
+                  $column = $condition['foreign_table'][$tempForeignTablePlural][$x]['column'];
+                  $value = $condition['foreign_table'][$tempForeignTablePlural][$x]['value'];
+                  $clause = isset($condition['foreign_table'][$tempForeignTablePlural][$x]['clause']) ? $condition['foreign_table'][$tempForeignTablePlural][$x]['clause'] : '=';
+                  $q->where($column, $clause, $value);
+                }
+              });
+            }
           }
         }
         if(count($foreignTable)){
@@ -284,7 +319,7 @@ class APIController extends Controller
       if(isset($request["id"])){
          $this->model = $this->model->where($tableName.".id", "=", $request["id"]);
       }else{
-        (isset($request['condition'])) ? $this->addCondition($request['condition']) : null;
+        // (isset($request['condition'])) ? $this->addCondition($request['condition']) : null;
         (isset($request['sort'])) ? $this->addOrderBy($request['sort']) : null;
         (isset($request['offset'])) ? $this->model->offset($request['offset']) : null;
         (isset($request['limit'])) ? $this->model = $this->model->limit($request['limit']) : null;

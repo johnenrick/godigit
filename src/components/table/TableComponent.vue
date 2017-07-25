@@ -168,7 +168,11 @@
           if(dbNameSegment.length > 1){
             value = row
             for(let x = 0; x < dbNameSegment.length; x++){
-              value = value[dbNameSegment[x]]
+              if(typeof value[dbNameSegment[x]] !== 'undefined'){
+                value = value[dbNameSegment[x]]
+              }else{
+                break
+              }
             }
           }else{
             value = row[dbName]
